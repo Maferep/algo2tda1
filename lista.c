@@ -121,19 +121,20 @@ int lista_borrar_de_posicion(lista_t* lista, size_t posicion)
     if(!lista||!posicion_en_rango(lista, posicion) || posicion == lista->tamanio) 
         return FRACASO;
     nodo_t* a_borrar;
-    nodo_t* previo = lista_acceder_nodo(lista, posicion-1); //accedo el nodo justo antes del nodo a borrar
+    nodo_t* previo = NULL; 
+    previo = lista_acceder_nodo(lista, posicion-1); //accedo el nodo justo antes del nodo a borrar
     if(previo)
     {
-        a_borrar = previo->siguiente;
-    } 
-    else if(posicion==0)
-    {
-        a_borrar = lista->inicio;
+        a_borrar = previo->siguiente; //guardo puntero
+        previo->siguiente = a_borrar->siguiente; //reapunto previo
     }
-    else return FRACASO;
-    nodo_t* posterior = a_borrar->siguiente;
+    else
+    {
+        a_borrar = lista->inicio; //guardo puntero
+        lista->inicio = a_borrar->siguiente; //reapunto previo
+    }
     free(a_borrar);
-    previo->siguiente = posterior;
+    
     (lista->tamanio)--;
     return EXITO;
 }
@@ -154,6 +155,14 @@ void* lista_ultimo(lista_t* lista)
 }
 int lista_apilar(lista_t* lista, void* elemento)
 {
-    
+    return lista_insertar_en_posicion(lista, elemento, 0); //Complejidad O(1) para insertar al inicio
+}
+int lista_desapilar(lista_t* lista)
+{
+    return lista_borrar_de_posicion(lista, 0); //Complejidad O(1) para borrar al inicio
+}
+void* lista_tope(lista_t* lista)
+{
+
 }
 

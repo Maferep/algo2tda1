@@ -40,7 +40,7 @@ void probar_operaciones_lista(){
   char letras[10] = {"valores y respeto mutuo"};
   for(int i = 0; i < 10; i++)
   {
-    lista_insertar(lista,letras[i]);
+    lista_insertar(lista,letras+i);
   }
   for(int i = 0; i < 10; i+=3)
   {
