@@ -147,6 +147,7 @@ int lista_borrar_de_posicion(lista_t* lista, size_t posicion)
     nodo_t* a_borrar = NULL;
     if(posicion==0 && lista->tamanio==1) //eliminar único elemento
     {
+        a_borrar = lista->inicio;
         lista->inicio = NULL; lista->final = NULL;
     }
     else

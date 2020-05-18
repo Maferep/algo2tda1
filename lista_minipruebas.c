@@ -18,33 +18,21 @@ void probar_operaciones_lista(){
 
   lista_insertar_en_posicion(lista, &d, 100);
   lista_insertar_en_posicion(lista, &b, 1);
-
-  printf("Elementos en la lista: ");
-  for(size_t i=0;i<lista_elementos(lista);i++)
-    printf("%c ", *(char*)lista_elemento_en_posicion(lista, i));
-  
   lista_insertar_en_posicion(lista, &w, 3);
-
-  printf("Elementos en la lista: ");
-  for(size_t i=0;i<lista_elementos(lista);i++)
-    printf("%c ", *(char*)lista_elemento_en_posicion(lista, i));
-
-  printf("\n\n");
-
   lista_borrar_de_posicion(lista, 3);
+
   printf("Elementos en la lista: ");
   for(size_t i=0;i<lista_elementos(lista);i++)
     printf("%c ", *(char*)lista_elemento_en_posicion(lista, i));
 
-  printf("\n\n");
-/*
-  int contador=0;
-  printf("Imprimo la lista usando el iterador interno: \n");
-  lista_con_cada_elemento(lista, mostrar_elemento, (void*)&contador);
-  printf("\n");
-  lista_iterador_destruir(it);
-  lista_iterador_destruir(it);
-  */
+  printf("\nDESTRUYENDO LISTA\n");
+    
+    int contador=0;
+    printf("Imprimo la lista usando el iterador interno: \n");
+    lista_con_cada_elemento(lista, mostrar_elemento, (void*)&contador);
+    printf("\n");
+    lista_iterador_destruir(it);
+    
   lista_destruir(lista);
 }
 
@@ -88,8 +76,8 @@ void probar_operaciones_pila(){
 
 int main(){
 
-  //printf("Pruebo que la lista se comporte como lista\n");
-  //probar_operaciones_lista();
+  printf("Pruebo que la lista se comporte como lista\n");
+  probar_operaciones_lista();
   
   printf("\nPruebo el comportamiento de cola\n");
   probar_operaciones_cola();
