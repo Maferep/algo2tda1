@@ -14,6 +14,12 @@ struct lista
 {
     nodo_t* inicio;
     size_t tamanio;
+    nodo_t* final;
+};
+struct iterador
+{
+    lista_t* lista;
+    nodo_t* nodo;
 };
 //TODO DOC devuelve true si posicion está en el rango [0, lista->tamanio] inclusive
 static bool posicion_en_rango(lista_t* lista, size_t posicion)
@@ -41,17 +47,16 @@ static nodo_t* nodo_crear(void* contenido)
     nodo->siguiente = NULL;
     return nodo;
 }
-//TODO-DOC busca el nodo [indice] y lo devuelve, si no lo encuentra devuelve NULL. 
+//TODO-DOC busca el nodo [indice] de 0 a tamanio-1 y lo devuelve, si no lo encuentra devuelve NULL. 
 //Si la posición provista es inválida, devuelve NULL.
 static nodo_t* lista_acceder_nodo(lista_t* lista, size_t indice)
 {
     if(!lista || indice >= lista->tamanio || lista_vacia(lista)) 
         return NULL;
     nodo_t* nodo_actual = lista->inicio;
-    while(indice) //Nodo nunca apunta prematuramente a NULL si el tamanio de la lista es correcto
+    for(size_t i = 0; i < indice; i++)
     {
         nodo_actual = nodo_actual->siguiente; 
-        indice--;
     }
     return nodo_actual;
 }
@@ -70,6 +75,7 @@ lista_t* lista_crear()
         return NULL;
     }
     nueva->inicio = NULL;
+    nueva->final = NULL;
     nueva->tamanio = 0;
     return nueva;
 }
@@ -93,48 +99,74 @@ void lista_destruir(lista_t* lista)
 
 int lista_insertar_en_posicion(lista_t* lista, void* elemento, size_t posicion)
 {
+    bool inserta_al_final = posicion == lista->tamanio;
+    bool inserta_al_principio = !posicion;
+    printf("--->insertando en %li\n",posicion);
     if(!lista||!posicion_en_rango(lista, posicion)) 
         return FRACASO;
     nodo_t* nuevo_nodo = nodo_crear(elemento);
     if(!nuevo_nodo) 
         return FRACASO;
-    //DEL lista acceder nodo devuelve NULL si posicion es igual al tope de la lista
-    nuevo_nodo->siguiente = lista_acceder_nodo(lista, posicion); 
-    if(posicion>0) //el nodo anterior apunta al nuevo nodo
+    if(inserta_al_final)
+    {
+        if(lista->final) 
+            lista->final->siguiente = nuevo_nodo; 
+        lista->final =nuevo_nodo; 
+    }
+    else 
+        nuevo_nodo->siguiente = lista_acceder_nodo(lista, posicion);
+
+    if(inserta_al_principio)
+        lista->inicio = nuevo_nodo;
+    else 
         lista_acceder_nodo(lista, posicion-1)->siguiente = nuevo_nodo;
-    else // inserto en el primer nodo
-        lista->inicio =  nuevo_nodo;
     (lista->tamanio)++;
-    //DEBUG
-    printf("insertó %c, ahora hay %li elementos\n", *((char*) elemento), lista->tamanio);
     return EXITO;
 }
 int lista_insertar(lista_t* lista, void* elemento)
 {
-    if(lista_insertar_en_posicion(lista, elemento, lista->tamanio)==EXITO)
-        return EXITO;
-    return FRACASO;
+    if(!lista) 
+        return FRACASO;
+    nodo_t* nuevo_nodo = nodo_crear(elemento);
+    if(!nuevo_nodo) 
+        return FRACASO;
+    
+    if(lista->final) lista->final->siguiente = nuevo_nodo;
+    lista->final =nuevo_nodo;
+    if(!lista->inicio) lista->inicio = nuevo_nodo;
+    lista->tamanio++;
+    return EXITO;
 }
 //borra el elemento [posicion]
+
 int lista_borrar_de_posicion(lista_t* lista, size_t posicion)
 {
-    if(!lista||!posicion_en_rango(lista, posicion) || posicion == lista->tamanio) 
+    printf("borrando de %li\n",posicion);
+    if(!lista || posicion >= lista->tamanio) 
         return FRACASO;
-    nodo_t* a_borrar;
-    nodo_t* previo = NULL; 
-    previo = lista_acceder_nodo(lista, posicion-1); //accedo el nodo justo antes del nodo a borrar
-    if(previo)
+    nodo_t* a_borrar = NULL;
+    if(posicion==0 && lista->tamanio==1) //eliminar único elemento
     {
-        a_borrar = previo->siguiente; //guardo puntero
-        previo->siguiente = a_borrar->siguiente; //reapunto previo
+        lista->inicio = NULL; lista->final = NULL;
     }
     else
-    {
-        a_borrar = lista->inicio; //guardo puntero
-        lista->inicio = a_borrar->siguiente; //reapunto previo
+    {   //Asigno nodo anterior
+        nodo_t* previo = lista_acceder_nodo(lista, posicion-1); 
+        if(!previo) 
+            a_borrar = lista->inicio;
+        else
+        {
+            a_borrar = previo->siguiente;
+            if(posicion == lista->tamanio-1) lista->final = previo;
+        }
+        //Asigno nodo posterior
+        nodo_t* posterior = a_borrar->siguiente;
+        if(!previo)
+            lista->inicio = posterior;
+        else
+            previo->siguiente = posterior;
     }
     free(a_borrar);
-    
     (lista->tamanio)--;
     return EXITO;
 }
@@ -144,14 +176,12 @@ int lista_borrar(lista_t* lista)
 }
 void* lista_elemento_en_posicion(lista_t* lista, size_t posicion)
 {
-    if(!lista) return NULL;
-    if(posicion_en_rango(lista, posicion) && posicion != lista->tamanio) 
-        return lista_acceder_nodo(lista,posicion)->contenido;
-    else return NULL;
+    nodo_t* nodo=lista_acceder_nodo(lista,posicion);
+    return nodo->contenido;
 }
 void* lista_ultimo(lista_t* lista)
 {
-    return lista_acceder_nodo(lista,(lista->tamanio)-1)->contenido;
+    return lista_ultimo_nodo(lista)->contenido;
 }
 int lista_apilar(lista_t* lista, void* elemento)
 {
@@ -163,6 +193,47 @@ int lista_desapilar(lista_t* lista)
 }
 void* lista_tope(lista_t* lista)
 {
-
+    return lista->inicio->contenido;
 }
+int lista_encolar(lista_t* lista, void* elemento)
+{
+    return lista_insertar(lista, elemento);
+}
+int lista_desencolar(lista_t* lista)
+{
+    return lista_borrar_de_posicion(lista, 0);
+}
+void* lista_primero(lista_t* lista)
+{
+    return lista->inicio->contenido;
+}
+lista_iterador_t* lista_iterador_crear(lista_t* lista)
+{
+    return NULL;
+}
+void* lista_iterador_siguiente(lista_iterador_t* iterador)
+{
+    return NULL;
+}
+bool lista_iterador_tiene_siguiente(lista_iterador_t* iterador)
+{
+    return false;
+}
+void lista_iterador_destruir(lista_iterador_t* iterador)
+{
+    return;
+}
+void lista_con_cada_elemento(lista_t* lista, void (*funcion)(void*, void*), void *contexto)
+{
+    nodo_t* nodo_actual = lista->inicio;
+    int i = 0;
+    while(nodo_actual && i<100) //DEBUG
+    {
+        funcion(nodo_actual->contenido, contexto);
+        nodo_actual = nodo_actual->siguiente;
+        i++;
+    }
+}
+
+
 
