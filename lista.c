@@ -16,7 +16,7 @@ struct lista
     size_t tamanio;
     nodo_t* final;
 };
-struct iterador
+struct lista_iterador
 {
     lista_t* lista;
     nodo_t* nodo;
@@ -99,14 +99,19 @@ void lista_destruir(lista_t* lista)
 
 int lista_insertar_en_posicion(lista_t* lista, void* elemento, size_t posicion)
 {
-    bool inserta_al_final = posicion == lista->tamanio;
-    bool inserta_al_principio = !posicion;
-    printf("--->insertando en %li\n",posicion);
-    if(!lista||!posicion_en_rango(lista, posicion)) 
+    if(!lista) 
         return FRACASO;
+
     nodo_t* nuevo_nodo = nodo_crear(elemento);
     if(!nuevo_nodo) 
         return FRACASO;
+
+    if(!posicion_en_rango(lista, posicion))
+        posicion = lista->tamanio;
+
+    bool inserta_al_final = posicion == lista->tamanio;
+    bool inserta_al_principio = posicion == 0;
+
     if(inserta_al_final)
     {
         if(lista->final) 
@@ -125,34 +130,25 @@ int lista_insertar_en_posicion(lista_t* lista, void* elemento, size_t posicion)
 }
 int lista_insertar(lista_t* lista, void* elemento)
 {
-    if(!lista) 
-        return FRACASO;
-    nodo_t* nuevo_nodo = nodo_crear(elemento);
-    if(!nuevo_nodo) 
-        return FRACASO;
-    
-    if(lista->final) lista->final->siguiente = nuevo_nodo;
-    lista->final =nuevo_nodo;
-    if(!lista->inicio) lista->inicio = nuevo_nodo;
-    lista->tamanio++;
-    return EXITO;
+    return lista_insertar_en_posicion(lista, elemento,lista->tamanio);
 }
-//borra el elemento [posicion]
-
 int lista_borrar_de_posicion(lista_t* lista, size_t posicion)
 {
-    printf("borrando de %li\n",posicion);
-    if(!lista || posicion >= lista->tamanio) 
+    if(!lista) 
         return FRACASO;
+    if(posicion >= lista->tamanio)
+        posicion = lista->tamanio - 1;
+
     nodo_t* a_borrar = NULL;
-    if(posicion==0 && lista->tamanio==1) //eliminar único elemento
-    {
+    if(posicion==0 && lista->tamanio==1) 
+    {   //eliminar único elemento
         a_borrar = lista->inicio;
         lista->inicio = NULL; lista->final = NULL;
     }
     else
     {   //Asigno nodo anterior
         nodo_t* previo = lista_acceder_nodo(lista, posicion-1); 
+        //asigno nodo a borrar
         if(!previo) 
             a_borrar = lista->inicio;
         else
@@ -162,6 +158,7 @@ int lista_borrar_de_posicion(lista_t* lista, size_t posicion)
         }
         //Asigno nodo posterior
         nodo_t* posterior = a_borrar->siguiente;
+        //asignación con if else
         if(!previo)
             lista->inicio = posterior;
         else
@@ -210,25 +207,36 @@ void* lista_primero(lista_t* lista)
 }
 lista_iterador_t* lista_iterador_crear(lista_t* lista)
 {
-    return NULL;
+    lista_iterador_t* iterador = malloc(sizeof(lista_iterador_t));
+    if(!iterador) 
+        return NULL;
+    iterador->lista = lista;
+    iterador->nodo = lista->inicio;
+    return iterador;
 }
 void* lista_iterador_siguiente(lista_iterador_t* iterador)
 {
-    return NULL;
+    if(!lista_iterador_tiene_siguiente(iterador)) return NULL;
+    void* contenido = iterador->nodo->contenido;
+    iterador->nodo = iterador->nodo->siguiente;
+    return contenido;
 }
 bool lista_iterador_tiene_siguiente(lista_iterador_t* iterador)
 {
-    return false;
+    if(iterador) 
+        return iterador->nodo != NULL;
+    else return false;
 }
 void lista_iterador_destruir(lista_iterador_t* iterador)
 {
-    return;
+    if(iterador) 
+        free(iterador);
 }
 void lista_con_cada_elemento(lista_t* lista, void (*funcion)(void*, void*), void *contexto)
 {
     nodo_t* nodo_actual = lista->inicio;
     int i = 0;
-    while(nodo_actual && i<100) //DEBUG
+    while(nodo_actual)
     {
         funcion(nodo_actual->contenido, contexto);
         nodo_actual = nodo_actual->siguiente;

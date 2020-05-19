@@ -15,24 +15,31 @@ void probar_operaciones_lista(){
   
   lista_insertar(lista, &a);
   lista_insertar(lista, &c);
-
   lista_insertar_en_posicion(lista, &d, 100);
   lista_insertar_en_posicion(lista, &b, 1);
   lista_insertar_en_posicion(lista, &w, 3);
+
   lista_borrar_de_posicion(lista, 3);
 
   printf("Elementos en la lista: ");
   for(size_t i=0;i<lista_elementos(lista);i++)
     printf("%c ", *(char*)lista_elemento_en_posicion(lista, i));
 
-  printf("\nDESTRUYENDO LISTA\n");
-    
-    int contador=0;
-    printf("Imprimo la lista usando el iterador interno: \n");
-    lista_con_cada_elemento(lista, mostrar_elemento, (void*)&contador);
-    printf("\n");
-    lista_iterador_destruir(it);
-    
+  printf("\n\n");
+
+  printf("Imprimo la lista usando el iterador externo: \n");
+  lista_iterador_t* it = lista_iterador_crear(lista);
+  while(lista_iterador_tiene_siguiente(it))
+    printf("%c ", *(char*)lista_iterador_siguiente(it));
+  printf("\n\n");
+
+  lista_iterador_destruir(it);
+
+  int contador=0;
+  printf("Imprimo la lista usando el iterador interno: \n");
+  lista_con_cada_elemento(lista, mostrar_elemento, (void*)&contador);
+  printf("\n");
+  
   lista_destruir(lista);
 }
 
@@ -64,7 +71,7 @@ void probar_operaciones_pila(){
     lista_apilar(pila, &algo[i]);
   }
 
-  printf("\nDesapilo y muestro los elementos apilados: \n");
+  printf("\nDesapilo y muestro los elementos apilados: ");
   while(!lista_vacia(pila)){
     printf("%c", *(char*)lista_tope(pila));
     lista_desapilar(pila);
@@ -73,7 +80,21 @@ void probar_operaciones_pila(){
 
   lista_destruir(pila);
 }
-
+void abuso_de_lista()
+{
+  lista_t* lista = NULL;
+  if(lista_apilar(lista,NULL)||
+  lista_desapilar(lista)||
+  lista_borrar(lista)||
+  lista_borrar_de_posicion(lista, 0)||
+  lista_encolar(lista, NULL)||
+  lista_desencolar(lista)||
+  lista_insertar(lista, NULL)||
+  lista_primero(lista))
+    printf("FALLO");
+  
+  
+}
 int main(){
 
   printf("Pruebo que la lista se comporte como lista\n");
@@ -84,5 +105,8 @@ int main(){
 
   printf("\nPruebo el comportamiento de pila\n");
   probar_operaciones_pila();
+
+  printf("\nabuso lista\n");
+  abuso_de_lista();
   return 0;
 }
