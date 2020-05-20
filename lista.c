@@ -58,7 +58,7 @@ static nodo_t* nodo_crear(void* contenido)
     return nodo;
 }
 /*
-*Busca el nodo [indice] de 0 a tamanio-1 y lo devuelve, si no lo encuentra devuelve NULL. 
+*Busca el nodo [indice] desde 0 hasta tamanio-1 y lo devuelve, si no lo encuentra devuelve NULL. 
 *Si la posición provista es inválida, devuelve NULL.
 */
 static nodo_t* lista_acceder_nodo(lista_t* lista, size_t indice)
@@ -116,33 +116,32 @@ void lista_destruir(lista_t* lista)
  * Devuelve 0 si pudo insertar o -1 si no pudo.
  */
 int lista_insertar_en_posicion(lista_t* lista, void* elemento, size_t posicion)
-{
+{   //Chequeos tontos
     if(!lista) 
         return FRACASO;
-
     nodo_t* nuevo_nodo = nodo_crear(elemento);
     if(!nuevo_nodo) 
         return FRACASO;
-
     if(!posicion_en_rango(lista, posicion))
         posicion = lista->tamanio;
-
-    bool inserta_al_final = posicion == lista->tamanio;
-    bool inserta_al_principio = posicion == 0;
-
-    if(inserta_al_final)
-    {
-        if(lista->final) 
-            lista->final->siguiente = nuevo_nodo; 
-        lista->final =nuevo_nodo; 
+    
+    nodo_t* anterior = lista_acceder_nodo(lista, posicion-1);
+    
+    //1. A donde apunta mi nodo nuevo?
+    if(anterior) nuevo_nodo->siguiente =anterior->siguiente;
+    else nuevo_nodo->siguiente=lista->inicio;
+    //nuevo_nodo->siguiente = lista_acceder_nodo(lista, posicion);
+    
+    //2. quien apunta a mi nodo?
+    if(!anterior) 
+    { //inserto el nuevo nodo al inicio
+        lista->inicio = nuevo_nodo;
     }
     else 
-        nuevo_nodo->siguiente = lista_acceder_nodo(lista, posicion);
-
-    if(inserta_al_principio)
-        lista->inicio = nuevo_nodo;
-    else 
-        lista_acceder_nodo(lista, posicion-1)->siguiente = nuevo_nodo;
+    { //conecto al nuevo nodo con el nodo que lo sigue, si existe.
+        anterior->siguiente = nuevo_nodo;
+    }
+    
     (lista->tamanio)++;
     return EXITO;
 }
