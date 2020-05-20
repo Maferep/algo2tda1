@@ -1,6 +1,7 @@
 #include "lista.h"
 #include <stdio.h>
-
+#define EXITO 0
+#define FRACASO -1
 void mostrar_elemento(void* elemento, void* contador){
   if(elemento && contador)
     printf("Elemento %i: %c \n", (*(int*)contador)++, *(char*)elemento);
@@ -9,7 +10,7 @@ void mostrar_elemento(void* elemento, void* contador){
 
 
 void probar_operaciones_lista(){
- lista_t* lista = lista_crear();
+  lista_t* lista = lista_crear();
   
   char a='a', b='b', c='c', d='d', w='w';
   
@@ -80,23 +81,100 @@ void probar_operaciones_pila(){
 
   lista_destruir(pila);
 }
+
 void abuso_de_lista()
 {
   lista_t* lista = NULL;
-  if(lista_apilar(lista,NULL)||
-  lista_desapilar(lista)||
-  lista_borrar(lista)||
-  lista_borrar_de_posicion(lista, 0)||
-  lista_encolar(lista, NULL)||
-  lista_desencolar(lista)||
-  lista_insertar(lista, NULL)||
-  lista_primero(lista))
-    printf("FALLO");
   
+  if(lista_apilar(lista,NULL)==EXITO)
+  {
+    printf("Apila elemento nulo");
+  }
+  if(lista_desapilar(lista)==EXITO)
+  { 
+      printf("FALLO2");return;
+  }
+  if(lista_borrar_de_posicion(lista, 0)==EXITO)
+  {  
+      printf("FALLO3");return;
+  }
+  if(lista_encolar(lista, NULL)==EXITO)
+  {  
+     printf("FALLO4");return;
+  }
+  if(lista_desencolar(lista)==EXITO) 
+  {
+    printf("FALLO5");return;
+  }
+  if(lista_borrar(lista)==EXITO) 
+  {
+    printf("FALLO6"); return;
+  }
+  if(lista_insertar(lista, NULL)==EXITO) 
+  {
+    printf("FALLO7");return;
+  }
+  if(lista_primero(lista)) 
+  {
+    printf("FALLO8"); return;
+  }
   
+  lista = lista_crear();
+  if(lista_desapilar(lista)==EXITO)
+  { 
+      printf("FALLO2");lista_destruir(lista);return;
+  }
+  if(lista_borrar_de_posicion(lista, 0)==EXITO)
+  {  
+      printf("FALLO3");lista_destruir(lista);return;
+  }
+  if(lista_desencolar(lista)==EXITO) 
+  {
+    printf("FALLO5"); lista_destruir(lista);return;
+  }
+  if(lista_borrar(lista)==EXITO) 
+  {
+    printf("FALLO6"); lista_destruir(lista);return;
+  }
+  if(lista_primero(lista)) 
+  {
+    printf("FALLO8"); lista_destruir(lista);return;
+  }
+  if(lista_elemento_en_posicion(lista,0)) 
+  {
+    printf("FALLO8"); lista_destruir(lista);return;
+  }
+  printf("lista vacia\n");
+  lista_destruir(lista);
+}
+int abuso_de_iterador()
+{
+  lista_t *lista = lista_crear();
+  int v[5] = {1,2,3,4,5};
+  lista_insertar(lista,&(v[0]));
+  lista_insertar(lista,&(v[1]));
+  lista_insertar(lista,&(v[2]));
+  lista_insertar(lista,&(v[3]));
+  lista_insertar(lista,&(v[4]));
+  lista_iterador_t *it = lista_iterador_crear(lista);
+  for(int i = 0; i < 5;i++)
+    {
+      int numero = *((int*)lista_iterador_siguiente(it));
+      printf( "%i;\n" , numero);
+    }
+  int* p_i = ((int*) lista_iterador_siguiente(it));
+  
+  if (p_i || lista_iterador_tiene_siguiente(it)) 
+  {
+    printf("FALLO\n");
+    return FRACASO;
+  }
+  lista_iterador_destruir(it);
+  lista_destruir(lista);
+  return EXITO;
 }
 int main(){
-
+  
   printf("Pruebo que la lista se comporte como lista\n");
   probar_operaciones_lista();
   
@@ -108,5 +186,8 @@ int main(){
 
   printf("\nabuso lista\n");
   abuso_de_lista();
+
+  printf("\nabuso iterador\n");
+  abuso_de_iterador();
   return 0;
 }

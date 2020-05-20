@@ -21,24 +21,34 @@ struct lista_iterador
     lista_t* lista;
     nodo_t* nodo;
 };
-//TODO DOC devuelve true si posicion está en el rango [0, lista->tamanio] inclusive
+/*
+ *Recibe un puntero a una lista creada y una posición.
+ *Devuelve true si posicion esta en el rango [0, lista->tamanio] inclusive
+ */
 static bool posicion_en_rango(lista_t* lista, size_t posicion)
 {
     return (posicion<=(lista->tamanio));
 }
-
-//TODO DOC Devuelve true si el tamaño de la lista es 0.
+/* 
+ * Recibe un puntero a una lista creada.
+ * Devuelve true si la lista está vacía o false en caso contrario.
+ */
 bool lista_vacia(lista_t* lista) 
 { 
     return lista->tamanio == 0; 
 } 
-//Devuelve la cantidad de elementos en la lista
+/*
+ * Recibe un puntero a una lista creada.
+ * Devuelve la cantidad de elementos almacenados en la lista.
+ */
 size_t lista_elementos(lista_t* lista)
 {
     return (lista->tamanio);
 }
-//TODO-DOC aloca memoria a un nodo, le asigna un contenido y lo hace apuntar a NULL.
-//devuelve el nodo si fue creado. Si falla devuelve NULL.
+/*
+Asigna memoria a un nodo, le asigna un contenido y lo hace apuntar a NULL.
+devuelve el nodo si fue creado. Si falla devuelve NULL.
+*/
 static nodo_t* nodo_crear(void* contenido)
 {
     nodo_t* nodo = malloc(sizeof(nodo_t)); 
@@ -47,8 +57,10 @@ static nodo_t* nodo_crear(void* contenido)
     nodo->siguiente = NULL;
     return nodo;
 }
-//TODO-DOC busca el nodo [indice] de 0 a tamanio-1 y lo devuelve, si no lo encuentra devuelve NULL. 
-//Si la posición provista es inválida, devuelve NULL.
+/*
+*Busca el nodo [indice] de 0 a tamanio-1 y lo devuelve, si no lo encuentra devuelve NULL. 
+*Si la posición provista es inválida, devuelve NULL.
+*/
 static nodo_t* lista_acceder_nodo(lista_t* lista, size_t indice)
 {
     if(!lista || indice >= lista->tamanio || lista_vacia(lista)) 
@@ -60,12 +72,10 @@ static nodo_t* lista_acceder_nodo(lista_t* lista, size_t indice)
     }
     return nodo_actual;
 }
-//TODO-DOC devuelve el nodo lista->tamanio-1, o NULL si la lista está vacía
-static nodo_t* lista_ultimo_nodo(lista_t* lista)
-{
-    return lista_acceder_nodo(lista, (lista->tamanio)-1 );
-}
-
+/*
+ * Crea la lista reservando la memoria necesaria.
+ * Devuelve un puntero a la lista creada o NULL en caso de error.
+ */
 lista_t* lista_crear()
 {
     lista_t* nueva = malloc(sizeof(lista_t));
@@ -79,6 +89,9 @@ lista_t* lista_crear()
     nueva->tamanio = 0;
     return nueva;
 }
+/*
+ * Libera la memoria reservada por la lista.
+ */
 void lista_destruir(lista_t* lista)
 {
     if(!lista)
@@ -96,7 +109,12 @@ void lista_destruir(lista_t* lista)
     }
     free(lista);
 }
-
+/*
+ * Inserta un elemento en la posicion indicada, donde 0 es insertar
+ * como primer elemento y 1 es insertar luego del primer elemento.  
+ * En caso de no existir la posicion indicada, lo inserta al final.
+ * Devuelve 0 si pudo insertar o -1 si no pudo.
+ */
 int lista_insertar_en_posicion(lista_t* lista, void* elemento, size_t posicion)
 {
     if(!lista) 
@@ -128,83 +146,143 @@ int lista_insertar_en_posicion(lista_t* lista, void* elemento, size_t posicion)
     (lista->tamanio)++;
     return EXITO;
 }
+/*
+ * Inserta un elemento al final de la lista.
+ * Devuelve 0 si pudo insertar o -1 si no pudo.
+ */
 int lista_insertar(lista_t* lista, void* elemento)
 {
+    if(!lista)
+        return FRACASO;
     return lista_insertar_en_posicion(lista, elemento,lista->tamanio);
+    
 }
+/*
+ * Quita de la lista el elemento que se encuentra en la posición
+ * indicada, donde 0 es el primer elemento.  
+ * En caso de no existir esa posición se intentará borrar el último
+ * elemento.  
+ * Devuelve 0 si pudo eliminar algún elemento o -1 si no pudo.
+ */
 int lista_borrar_de_posicion(lista_t* lista, size_t posicion)
 {
-    if(!lista) 
+    if(!lista || lista_vacia(lista)) 
         return FRACASO;
     if(posicion >= lista->tamanio)
         posicion = lista->tamanio - 1;
-
     nodo_t* a_borrar = NULL;
-    if(posicion==0 && lista->tamanio==1) 
-    {   //eliminar único elemento
+    //Guardo nodo previo al que quiero borrar si existe
+    nodo_t* previo = lista_acceder_nodo(lista, posicion-1); 
+    //Guardo nodo a borrar
+    
+    if(!previo)
         a_borrar = lista->inicio;
-        lista->inicio = NULL; lista->final = NULL;
-    }
     else
-    {   //Asigno nodo anterior
-        nodo_t* previo = lista_acceder_nodo(lista, posicion-1); 
-        //asigno nodo a borrar
-        if(!previo) 
-            a_borrar = lista->inicio;
-        else
-        {
-            a_borrar = previo->siguiente;
-            if(posicion == lista->tamanio-1) lista->final = previo;
-        }
-        //Asigno nodo posterior
-        nodo_t* posterior = a_borrar->siguiente;
-        //asignación con if else
-        if(!previo)
-            lista->inicio = posterior;
-        else
-            previo->siguiente = posterior;
+    {
+        a_borrar = previo->siguiente;
+        if(!a_borrar->siguiente) 
+            lista->final = previo;
     }
+    //Guardo nodo posterior al que borro si existe
+    nodo_t* posterior = a_borrar->siguiente;
+    if(!previo)
+        lista->inicio = posterior;
+    else
+        previo->siguiente = posterior;
+
     free(a_borrar);
     (lista->tamanio)--;
+    if(!lista->tamanio)
+        lista->final = NULL;
     return EXITO;
 }
+/*
+ * Borra el elemento al final de la lista.
+ * Devuelve 0 si pudo borrar o -1 si no pudo.
+ */
 int lista_borrar(lista_t* lista)
 {
+    if(!lista)
+        return FRACASO;
     return lista_borrar_de_posicion(lista,(lista->tamanio) - 1);
 }
+/*
+ * Devuelve el elemento en la posicion indicada, donde 0 es el primer
+ * elemento.
+ *
+ * Si no existe dicha posicion devuelve NULL.
+ */
 void* lista_elemento_en_posicion(lista_t* lista, size_t posicion)
 {
     nodo_t* nodo=lista_acceder_nodo(lista,posicion);
-    return nodo->contenido;
+    if(nodo)return nodo->contenido;
+    else return NULL;
 }
+/* 
+ * Devuelve el último elemento de la lista o NULL si la lista se
+ * encuentra vacía.
+ */
 void* lista_ultimo(lista_t* lista)
 {
-    return lista_ultimo_nodo(lista)->contenido;
+    if(!lista) return NULL;
+    return lista_elemento_en_posicion(lista, lista->tamanio);
 }
+/* 
+ * Apila un elemento.
+ * Devuelve 0 si pudo o -1 en caso contrario.
+ */
 int lista_apilar(lista_t* lista, void* elemento)
 {
-    return lista_insertar_en_posicion(lista, elemento, 0); //Complejidad O(1) para insertar al inicio
+    return lista_insertar_en_posicion(lista, elemento, 0); 
 }
+/* 
+ * Desapila un elemento.
+ * Devuelve 0 si pudo desapilar o -1 si no pudo.
+ */
 int lista_desapilar(lista_t* lista)
 {
-    return lista_borrar_de_posicion(lista, 0); //Complejidad O(1) para borrar al inicio
+    return lista_borrar_de_posicion(lista, 0); 
 }
+/*
+ * Devuelve el elemento en el tope de la pila o NULL
+ * en caso de estar vacía.
+ */
 void* lista_tope(lista_t* lista)
 {
-    return lista->inicio->contenido;
+    return lista_primero(lista);
 }
+/* 
+ * Encola un elemento.
+ * Devuelve 0 si pudo encolar o -1 si no pudo.
+ */
 int lista_encolar(lista_t* lista, void* elemento)
 {
     return lista_insertar(lista, elemento);
 }
+/* 
+ * Desencola un elemento.
+ * Devuelve 0 si pudo desencolar o -1 si no pudo.
+ */
 int lista_desencolar(lista_t* lista)
 {
     return lista_borrar_de_posicion(lista, 0);
 }
+/*
+ * Devuelve el primer elemento de la cola o NULL en caso de estar
+ * vacía.
+ */
 void* lista_primero(lista_t* lista)
 {
-    return lista->inicio->contenido;
+    return lista_elemento_en_posicion(lista, 0);
 }
+/*
+ * Crea un iterador para una lista. El iterador creado es válido desde
+ * el momento de su creación hasta que no haya mas elementos por
+ * recorrer o se modifique la lista iterada (agregando o quitando
+ * elementos de la lista).
+ *
+ * Devuelve el puntero al iterador creado o NULL en caso de error.
+ */
 lista_iterador_t* lista_iterador_crear(lista_t* lista)
 {
     lista_iterador_t* iterador = malloc(sizeof(lista_iterador_t));
@@ -214,24 +292,40 @@ lista_iterador_t* lista_iterador_crear(lista_t* lista)
     iterador->nodo = lista->inicio;
     return iterador;
 }
+/*
+ * Devuelve true si hay mas elementos sobre los cuales iterar o false
+ * si no hay mas.
+ */
+bool lista_iterador_tiene_siguiente(lista_iterador_t* iterador)
+{
+    if(!iterador) 
+        return false;
+    return iterador->nodo != NULL;
+}
+/*
+ * Devuelve el próximo elemento disponible en la iteración.
+ * En caso de error devuelve NULL.
+ */
 void* lista_iterador_siguiente(lista_iterador_t* iterador)
 {
-    if(!lista_iterador_tiene_siguiente(iterador)) return NULL;
+    if(!iterador || !lista_iterador_tiene_siguiente(iterador)) 
+        return NULL;
     void* contenido = iterador->nodo->contenido;
     iterador->nodo = iterador->nodo->siguiente;
     return contenido;
 }
-bool lista_iterador_tiene_siguiente(lista_iterador_t* iterador)
-{
-    if(iterador) 
-        return iterador->nodo != NULL;
-    else return false;
-}
+/*
+ * Libera la memoria reservada por el iterador.
+ */
 void lista_iterador_destruir(lista_iterador_t* iterador)
 {
     if(iterador) 
         free(iterador);
 }
+/*
+ * Iterador interno. Recorre la lista e invoca la funcion con cada
+ * elemento de la misma.
+ */
 void lista_con_cada_elemento(lista_t* lista, void (*funcion)(void*, void*), void *contexto)
 {
     nodo_t* nodo_actual = lista->inicio;
