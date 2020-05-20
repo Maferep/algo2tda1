@@ -170,19 +170,15 @@ int lista_borrar_de_posicion(lista_t* lista, size_t posicion)
         return FRACASO;
     if(posicion >= lista->tamanio)
         posicion = lista->tamanio - 1;
-    //Guardo nodo previo al que quiero borrar si existe
     nodo_t* previo = lista_acceder_nodo(lista, posicion-1); 
-    //Guardo nodo a borrar
     nodo_t* a_borrar = previo ? previo->siguiente : lista->inicio ;
-    //Guardo nodo posterior al que borro si existe
     nodo_t* posterior = a_borrar->siguiente;
     //desconecto nodo a borrar
     if(previo)
         previo->siguiente = posterior;
     else 
         lista->inicio = posterior;
-        
-    //si era el último, reasigno puntero final
+    //si era el último, reasigno lista->final
     if(!posterior) 
         lista->final = previo;
     //libero y achico lista
